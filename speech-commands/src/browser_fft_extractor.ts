@@ -32,6 +32,12 @@ export type SpectrogramCallback = (freqData: tf.Tensor, timeData?: tf.Tensor) =>
  */
 export interface BrowserFftFeatureExtractorConfig extends RecognizerParams {
   /**
+   * If not provided, the default behavior is to use the microphone as the
+   * audio source.
+   */
+  source?: HTMLMediaElement;
+
+  /**
    * Number of audio frames (i.e., frequency columns) per spectrogram.
    */
   numFramesPerSpectrogram: number;
@@ -105,6 +111,7 @@ export class BrowserFftFeatureExtractor implements FeatureExtractor {
 
   private readonly spectrogramCallback: SpectrogramCallback;
 
+  private source: HTMLMediaElement;
   private stream: MediaStream;
   // tslint:disable-next-line:no-any
   private audioContextConstructor: any;
@@ -148,6 +155,9 @@ export class BrowserFftFeatureExtractor implements FeatureExtractor {
           `Expected suppressionTimeMillis to be >= 0, ` +
           `but got ${config.suppressionTimeMillis}`);
     }
+
+    this.source = config.source;
+
     this.suppressionTimeMillis = config.suppressionTimeMillis;
 
     this.spectrogramCallback = config.spectrogramCallback;
@@ -174,21 +184,27 @@ export class BrowserFftFeatureExtractor implements FeatureExtractor {
   }
 
   async start(audioTrackConstraints?: MediaTrackConstraints):
-      Promise<Float32Array[]|void> {
+		Promise<Float32Array[]|void> {
     if (this.frameIntervalTask != null) {
       throw new Error(
           'Cannot start already-started BrowserFftFeatureExtractor');
     }
 
-    this.stream = await getAudioMediaStream(audioTrackConstraints);
-    this.audioContext = new this.audioContextConstructor(
-                            {sampleRate: this.sampleRateHz}) as AudioContext;
+	this.audioContext = new this.audioContextConstructor(
+		{sampleRate: this.sampleRateHz}) as AudioContext;
 
-    const streamSource = this.audioContext.createMediaStreamSource(this.stream);
+    let source: MediaStreamAudioSourceNode | MediaElementAudioSourceNode;
+    if (this.source) {
+        source = this.audioContext.createMediaElementSource(this.source);
+    } else {
+        this.stream = await getAudioMediaStream(audioTrackConstraints);
+        source = this.audioContext.createMediaStreamSource(this.stream);
+    }
+
     this.analyser = this.audioContext.createAnalyser();
     this.analyser.fftSize = this.fftSize * 2;
     this.analyser.smoothingTimeConstant = 0.0;
-    streamSource.connect(this.analyser);
+    source.connect(this.analyser);
     // Reset the queue.
     this.freqDataQueue = [];
     this.freqData = new Float32Array(this.fftSize);

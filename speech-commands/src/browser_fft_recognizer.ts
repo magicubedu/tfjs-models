@@ -272,7 +272,8 @@ export class BrowserFftSpeechCommandRecognizer implements
       columnTruncateLength: this.nonBatchInputShape[1],
       suppressionTimeMillis,
       spectrogramCallback,
-      overlapFactor
+      overlapFactor,
+      source: config.source
     });
 
     await this.audioDataExtractor.start(config.audioTrackConstraints);
