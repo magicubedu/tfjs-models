@@ -424,12 +424,6 @@ export interface SpeechCommandRecognizerResult {
 
 export interface StreamingRecognitionConfig {
   /**
-     * If not provided, the default behavior is to use the microphone as the
-     * audio source.
-     */
-   source?: HTMLMediaElement;
-
-  /**
    * Overlap factor. Must be >=0 and <1.
    * Defaults to 0.5.
    * For example, if the model takes a frame length of 1000 ms,
