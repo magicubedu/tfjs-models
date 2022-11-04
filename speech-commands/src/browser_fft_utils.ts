@@ -32,7 +32,6 @@ export async function loadMetadataJson(url: string):
     throw new Error(
         `Unsupported URL scheme in metadata URL: ${url}. ` +
         `Supported schemes are: http://, https://`
-  }
 }
 
 let EPSILON: number = null;
