@@ -23,7 +23,6 @@ export async function loadMetadataJson(url: string):
     Promise<{wordLabels: string[]}> {
   const HTTP_SCHEME = 'http://';
   const HTTPS_SCHEME = 'https://';
-  const FILE_SCHEME = 'file://';
   if (url.indexOf(HTTP_SCHEME) === 0 || url.indexOf(HTTPS_SCHEME) === 0) {
     const response = await fetch(url);
     const parsed = await response.json();
@@ -32,6 +31,8 @@ export async function loadMetadataJson(url: string):
     throw new Error(
         `Unsupported URL scheme in metadata URL: ${url}. ` +
         `Supported schemes are: http://, https://`
+    );
+  }
 }
 
 let EPSILON: number = null;
